@@ -18,3 +18,5 @@ easily store hundreds of billions of data points.
 
 OpenTSDB is free software and is available under both LGPLv2.1+ and GPLv3+.
 Find more about OpenTSDB at http://opentsdb.net
+调整
+增加update功能
