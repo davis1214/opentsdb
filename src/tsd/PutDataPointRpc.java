@@ -135,7 +135,7 @@ final class PutDataPointRpc implements TelnetRpc, HttpRpc {
                 Integer.parseInt(query.getQueryStringParam("sync_timeout")) : 0;
 
         //1:auto_incremnt ,0 :no
-        final int autoIncr = query.hasQueryStringParam("auto_incr")?1:0;
+        final int autoIncr = query.hasQueryStringParam("auto_incr") ? 1 : 0;
 
         // this is used to coordinate timeouts
         final AtomicBoolean sending_response = new AtomicBoolean();
@@ -215,22 +215,16 @@ final class PutDataPointRpc implements TelnetRpc, HttpRpc {
                     continue;
                 }
 
-                //TODO 根据传入长数据决定是add or update
                 Deferred<? extends Object> deferred = null;
 
-                if (Tags.looksLikeInteger(dp.getValue())) {
-                    if(autoIncr ==1){
-                        deferred = tsdb.incPoint(dp.getMetric(), dp.getTimestamp(),
-                                Tags.parseLong(dp.getValue()), dp.getTags());
-                    }else{
+                if (autoIncr == 1) {
+                    deferred = tsdb.incPoint(dp.getMetric(), dp.getTimestamp(),
+                            Tags.parseLong(dp.getValue()), dp.getTags());
+                } else {
+                    if (Tags.looksLikeInteger(dp.getValue())) {
                         tsdb.addPoint(dp.getMetric(), dp.getTimestamp(),
                                 Tags.parseLong(dp.getValue()), dp.getTags());
-                    }
-                } else {
-                    if(autoIncr ==1){
-                        deferred = tsdb.incPoint(dp.getMetric(), dp.getTimestamp(),
-                                Tags.parseLong(dp.getValue()), dp.getTags());
-                    }else{
+                    } else {
                         deferred = tsdb.addPoint(dp.getMetric(), dp.getTimestamp(),
                                 Float.parseFloat(dp.getValue()), dp.getTags());
                     }
