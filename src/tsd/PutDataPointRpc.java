@@ -133,6 +133,10 @@ final class PutDataPointRpc implements TelnetRpc, HttpRpc {
         final boolean synchronous = query.hasQueryStringParam("sync");
         final int sync_timeout = query.hasQueryStringParam("sync_timeout") ?
                 Integer.parseInt(query.getQueryStringParam("sync_timeout")) : 0;
+
+        //1:auto_incremnt ,0 :no
+        final int autoIncr = query.hasQueryStringParam("auto_incr")?1:0;
+
         // this is used to coordinate timeouts
         final AtomicBoolean sending_response = new AtomicBoolean();
         sending_response.set(false);
@@ -166,9 +170,9 @@ final class PutDataPointRpc implements TelnetRpc, HttpRpc {
             }
 
             /** Simply marks the put as successful */
-            final class SuccessCB implements Callback<Boolean, Object> {
+            final class SuccessCB<T> implements Callback<Boolean, T> {
                 @Override
-                public Boolean call(final Object obj) {
+                public Boolean call(final T t) {
                     return true;
                 }
 
@@ -211,17 +215,31 @@ final class PutDataPointRpc implements TelnetRpc, HttpRpc {
                     continue;
                 }
 
-                final Deferred<? extends Object> deferred;
+                //TODO 根据传入长数据决定是add or update
+                Deferred<? extends Object> deferred = null;
+
                 if (Tags.looksLikeInteger(dp.getValue())) {
-                    deferred = tsdb.incPoint(dp.getMetric(), dp.getTimestamp(),
-                            Tags.parseLong(dp.getValue()), dp.getTags());
+                    if(autoIncr ==1){
+                        deferred = tsdb.incPoint(dp.getMetric(), dp.getTimestamp(),
+                                Tags.parseLong(dp.getValue()), dp.getTags());
+                    }else{
+                        tsdb.addPoint(dp.getMetric(), dp.getTimestamp(),
+                                Tags.parseLong(dp.getValue()), dp.getTags());
+                    }
                 } else {
-                    deferred = tsdb.addPoint(dp.getMetric(), dp.getTimestamp(),
-                            Float.parseFloat(dp.getValue()), dp.getTags());
+                    if(autoIncr ==1){
+                        deferred = tsdb.incPoint(dp.getMetric(), dp.getTimestamp(),
+                                Tags.parseLong(dp.getValue()), dp.getTags());
+                    }else{
+                        deferred = tsdb.addPoint(dp.getMetric(), dp.getTimestamp(),
+                                Float.parseFloat(dp.getValue()), dp.getTags());
+                    }
                 }
+
                 if (synchronous) {
                     deferreds.add(deferred.addCallback(new SuccessCB()));
                 }
+
                 deferred.addErrback(new PutErrback());
                 ++queued;
             } catch (NumberFormatException x) {

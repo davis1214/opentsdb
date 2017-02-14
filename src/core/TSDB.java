@@ -715,7 +715,6 @@ public final class TSDB {
         return incPointInternal(metric, timestamp, value, tags, flags);
     }
 
-
     private Deferred<Long> incPointInternal(final String metric,
                                             final long timestamp, final long value,
                                             final Map<String, String> tags, final short flags) {
