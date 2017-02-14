@@ -132,6 +132,7 @@ tsdb_SRC := \
 	src/tsd/StorageExceptionHandler.java	\
 	src/tsd/SuggestRpc.java	\
 	src/tsd/TelnetRpc.java	\
+	src/tsd/IncDataPointRpc.java \
 	src/tsd/TreeRpc.java	\
 	src/tsd/UniqueIdRpc.java	\
 	src/tsd/WordSplitter.java	\
